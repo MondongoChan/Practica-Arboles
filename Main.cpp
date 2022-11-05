@@ -39,15 +39,15 @@ struct termino{
     }
 };
 
-//Función para insertar un término en el árbol
-void insertarTermino(termino *&arbt, string palabra){
-    if(arbt==NULL){
-        arbt=new termino(palabra);
+//Función para insertar una página en el árbol
+void insertarPagina(numPagina *&arbp, int numPag){
+    if(arbp==NULL){
+        arbp=new numPagina(numPag);
     }else{
-        if(palabra<arbt->palabra){
-            insertarTermino(arbt->izq, palabra);
-        }else if(palabra>arbt->palabra){
-            insertarTermino(arbt->der, palabra);
+        if(numPag<arbp->numPag){
+            insertarPagina(arbp->izq, numPag);
+        }else{
+            insertarPagina(arbp->der, numPag);
         }
     }
 }
@@ -59,51 +59,61 @@ void insertarSubTermino(subTermino *&arbst, string palabra){
     }else{
         if(palabra<arbst->palabra){
             insertarSubTermino(arbst->izq, palabra);
-        }else if(palabra>arbst->palabra){
+        }else{
             insertarSubTermino(arbst->der, palabra);
         }
     }
 }
 
-//Función para insertar una página en el árbol
-void insertarPagina(numPagina *&arbp, int numPag){
-    if(arbp==NULL){
-        arbp=new numPagina(numPag);
+//Función para insertar un término en el árbol
+void insertarTermino(termino *&arbt, string palabra){
+    if(arbt==NULL){
+        arbt=new termino(palabra);
     }else{
-        if(numPag<arbp->numPag){
-            insertarPagina(arbp->izq, numPag);
-        }else if(numPag>arbp->numPag){
-            insertarPagina(arbp->der, numPag);
+        if(palabra<arbt->palabra){
+            insertarTermino(arbt->izq, palabra);
+        }else{
+            insertarTermino(arbt->der, palabra);
         }
     }
 }
 
-//Organizar el árbol de páginas
-void organizarPaginas(numPagina *&arbp){
+//Organizar el árbol de páginas INORDEN
+void organizarPagina(numPagina *arbp){
     if(arbp!=NULL){
-        organizarPaginas(arbp->izq);
-        cout<<" "<<arbp->numPag;
-        organizarPaginas(arbp->der);
+        organizarPagina(arbp->izq);
+        cout<<arbp->numPag<<" ";
+        organizarPagina(arbp->der);
     }
 }
 
-//Organizar el árbol de subtérminos
+//Organizar el árbol de subtérminos INORDEN
 void organizarSubTerminos(subTermino *&arbst){
     if(arbst!=NULL){
         organizarSubTerminos(arbst->izq);
-        cout<<"*"<<arbst->palabra<<endl;
+        cout<<"   "<<arbst->palabra<<"->";
+        organizarPagina(arbst->paginas);
+        cout<<endl;
         organizarSubTerminos(arbst->der);
     }
 }
 
-//Organizar el árbol de términos
+//Organizar el árbol de términos INORDEN
 void organizarTerminos(termino *&arbt){
     if(arbt!=NULL){
         organizarTerminos(arbt->izq);
-        cout<<arbt->palabra;
-        organizarSubTerminos(arbt->subTerm);
-        organizarPaginas(arbt->paginas);
         cout<<endl;
+        cout<<arbt->palabra;
+
+        if(arbt->paginas!=NULL){
+            cout<<" ";
+            organizarPagina(arbt->paginas);
+        }
+
+        if(arbt->subTerm!=NULL){
+            cout<<endl;
+            organizarSubTerminos(arbt->subTerm);
+        }
         organizarTerminos(arbt->der);
     }
 }
@@ -153,9 +163,10 @@ termino* buscarTermino(termino *&arbt, string palabra){
     }
 }
 
-// Busca el numero que indica la cantidad de veces que "algo" aparece en el libro
+/* Busca el numero que indica la cantidad de veces que una palabra aparece en el libro
+Se pone el límite entre 0 y 9, ya que puede aparecer entre este rango nada más (Según código)
+*/
 int buscarNum(string n){
-    int num=0;
     for(int i=0; i<n.length(); i++){
         if(n[i]>='0' && n[i]<='9'){
             return i;
@@ -169,12 +180,9 @@ int buscarNum(string n){
 void extraerPaginas(numPagina *&arbp,int n, string pag){
     int numP=stoi(pag.substr(0,1));
     string cadenaRestante=pag.substr(1);
-
-    while(cadenaRestante.length()<numP*n){
-        cadenaRestante="0"+cadenaRestante;
-    }
-
     int a=0;
+
+    //Linkeamos la página al arbol de paginas
     for(int i=0; i<numP; i++){
         int pag=stoi(cadenaRestante.substr(a,n));
         insertarPagina(arbp, pag);
@@ -182,11 +190,9 @@ void extraerPaginas(numPagina *&arbp,int n, string pag){
     }
 }
 
-//Main
-int main(){
+void cargarArchivo(){
     termino *raizTermino=NULL;
     string tactual;
-    string tant;
     ifstream archivo;
 
     archivo.open("Libro.txt",ios::in);
@@ -195,9 +201,8 @@ int main(){
         exit(1);
     }
 
-    cout<<"Por favor ingrese un número entre 0 y 9 para el número de la páginas: "<<endl;
-    int num;
-    cin>>num;
+    cout<<"Libro Datos y Algoritmos I\n"<<endl;
+    int num=2;
 
     while(!archivo.eof()){
         string linea;
@@ -207,7 +212,7 @@ int main(){
         if(linea[0]=='m'){
             int pos=buscarNum(linea);
             if(pos!=-1){
-                string tempt=linea.substr(0,pos-1);
+                string tempt=linea.substr(1,pos-1);
                 insertarTermino(raizTermino, tempt);
                 tactual=tempt;
                 string pag=linea.substr(pos);
@@ -235,5 +240,9 @@ int main(){
     }
     archivo.close();
     organizarTerminos(raizTermino);
+}
+
+int main(){
+    cargarArchivo();
     return 0;
 }

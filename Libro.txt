@@ -1,10 +1,10 @@
-mArboles21020
+mArboles21122
 nBinarios122
 nEnarios21517
-nTernarios416181920
-mOrdenamiento23035
-nTeorema maestro23132
-nTiempo de ejecución23334
-mListas33640
+nTernarios416181921
+mListas23641
 nSimples23738
-nDobles23940
+nDobles23941
+mOrdenamiento23135
+nTeorema maestro23132
+nTiempo de ejecucion23334
